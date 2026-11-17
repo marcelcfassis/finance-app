@@ -100,25 +100,27 @@ Estou começando agora. Primeiro, olhe a pasta atual para ver o que já existe (
 
 
 
-## Status atual (atualizado em 16/11/2026)
+## Status atual (atualizado em 17/11/2026)
 
-Repositório: https://github.com/marcel4labs/finance-app (branch main).
+Repositório (privado): https://github.com/marcelcfassis/finance-app (branch main). O antigo `marcel4labs/finance-app` ficou parado nos loops 1 e 2.
 Ao começar uma sessão: leia esta seção, rode `git pull` e `git log --oneline`, e retome do "Próximo passo".
 
 ### Concluído
 - **Loop 1** (esqueleto ponta a ponta): React → proxy do Vite → Express → SQLite → tela.
 - **Loop 2** (criar e listar transações): `POST` e `GET /api/transactions`, formulário com 4 campos, lista que atualiza sozinha, valor em reais com sinal de entrada/saída.
-- 3 testes no backend passando (health, listar, criar). Ainda NÃO há testes no frontend.
+- **Loop 3** (dashboard): `GET /api/summary` soma no banco com `SUM` + `GROUP BY` e devolve `{ income, expense, balance }` em centavos (`?? 0` quando não há linhas). No front: componente `Summary` (entradas, saídas, saldo), `formatCurrency` em `format.ts`, e o resumo recarrega depois de salvar (`loadSummary()` dentro do `.then` do POST, e `summary` fora do array do `useEffect`).
+- 5 testes no backend (health, listar, summary vazio, summary com dados por antes/depois, criar) e 1 no frontend (saldo na tela com `fetch` mockado). Vitest + Testing Library + jsdom configurados no front (`vite.config.ts`).
 
 ### Próximo passo
-**Loop 3: dashboard** (total de entradas, saídas e saldo). Primeiro conceito a explicar: somar no banco com `SUM` e `GROUP BY`, e não em JavaScript. Marcel ainda não começou.
+**Loop 4: cadastro e login, transações por usuário.** Conceitos novos, um de cada vez: hash de senha com bcrypt, JWT, middleware de autenticação. Marcel ainda não começou.
 
 ### Como rodar (máquina nova)
 ```bash
-git clone https://github.com/marcel4labs/finance-app.git
+git clone https://github.com/marcelcfassis/finance-app.git
 cd finance-app/backend && npm install && npm run dev     # API em localhost:3000
 cd ../frontend && npm install && npm run dev            # tela em localhost:5173
-cd backend && npm test                                  # testes (rodar DENTRO de backend/)
+cd backend && npm test                                  # testes do back (rodar DENTRO de backend/)
+cd frontend && npm test                                 # testes do front (rodar DENTRO de frontend/)
 ```
 O `finance.db` não vai para o git. Ele é criado vazio na primeira execução do backend.
 
@@ -134,15 +136,19 @@ O `finance.db` não vai para o git. Ele é criado vazio na primeira execução d
 - Sem validação nem tratamento de erro: corpo inválido no POST gera erro 500 e o front ignora falhas (loop 5).
 - Clicar duas vezes em Salvar grava duas vezes: precisa de `Idempotency-Key` (loop 6).
 - Teste do POST só confere resposta `201` e `id`. Melhorar: conferir com um GET que a linha ficou salva.
-- `App.tsx` mistura formulário, lista e chamadas de API: separar em componentes quando entrar o dashboard.
+- `App.tsx` ainda mistura formulário, lista e chamadas de API (o `Summary` já foi separado): extrair o restante em componentes.
 - `app.ts` mistura rota e SQL: separar em rota → service → repository.
-- Rota `GET` traz transações de todos os usuários: filtrar por `user_id` no loop 4.
-- Testes do frontend (vitest + Testing Library) ainda não configurados.
+- As rotas `GET /api/transactions` e `GET /api/summary` somam todos os usuários: filtrar por `user_id` no loop 4.
+- Os testes do backend compartilham o mesmo banco em memória e dependem da ordem (o teste do summary vazio precisa vir antes dos que gravam). Limpar o banco entre testes no loop 6.
+- O teste do front só confere o saldo (`6,00`): conferir também entradas e saídas.
 - Data na lista aparece como `2026-11-01`: formatar `dd/mm/aaaa` no polimento (loop 7).
 - Textos dos testes: padronizar o idioma e evitar "it it".
-- O repositório é público e este arquivo está nele.
+- `backend/package-lock.json` tem uma linha modificada pelo npm (`hasInstallScript`), deixada de fora dos commits.
+- O repositório agora é privado, mas este arquivo está nele: não colocar segredos aqui.
 
 ### Observações sobre o Marcel
 - Está aprendendo: prefere passos bem pequenos ("me guie"). Quando um passo grande confundir, quebre em pedaços menores.
 - Dificuldades até agora: `useEffect`, sintaxe de ternário/`if`, localizar em qual pasta rodar comandos. Vale lembrar o caminho (`backend/` ou `frontend/`) ao pedir um comando.
 - Pediu confirmação de que "fazer uma vez não é dominar": não exagerar elogios, repetir o padrão tela → API → banco → teste.
+- Pediu (17/11) que eu mostre o jeito certo em vez de devolver perguntas sobre tudo: decidir o que for convenção/boa prática e explicar o porquê; perguntar só o que for escolha dele de verdade.
+- Aprendeu no loop 3: testar quebrando de propósito (falso verde), mock de `fetch`, props de componente como objeto, git com `reset` seguro para ligar pasta de zip ao GitHub.
