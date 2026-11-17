@@ -29,7 +29,7 @@ app.get("/api/summary", (req: Request, res: Response) => {
     .prepare(
       "SELECT type, SUM(amount_cents) as total FROM transactions GROUP BY type",
     )
-    .all() as { type: string; total: number }[];
+    .all() as { type: "income" | "expense"; total: number }[];
 
   const income = rows.find((row) => row.type === "income");
   const incomeTotal = income?.total ?? 0;

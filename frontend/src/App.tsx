@@ -1,22 +1,19 @@
 import { useState, useEffect } from "react";
 import Summary from "./Summary";
 import formatCurrency from "./format";
-
-type Transaction = {
-  id: number;
-  type: "income" | "expense";
-  amount_cents: number;
-  description: string;
-  date: string;
-};
+import type { SummaryData, TransactionType, Transaction } from "./types";
 
 function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [description, setDescription] = useState("");
-  const [type, setType] = useState("expense");
+  const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
-  const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
+  const [summary, setSummary] = useState<SummaryData>({
+    income: 0,
+    expense: 0,
+    balance: 0,
+  });
 
   useEffect(() => {
     loadTransactions();
@@ -70,16 +67,19 @@ function App() {
         onChange={(e) => setDate(e.target.value)}
       />
 
-      <select value={type} onChange={(e) => setType(e.target.value)}>
+      <select
+        value={type}
+        onChange={(e) => setType(e.target.value as TransactionType)}
+      >
         <option value="expense">Saída</option>
         <option value="income">Entrada</option>
       </select>
       <button onClick={handleSubmit}>Salvar</button>
       <ul>
-        {transactions.map((t) => (
-          <li key={t.id}>
-            {t.description} | {t.type === "expense" ? "-" : "+"}{" "}
-            {formatCurrency(t.amount_cents)} | {t.date}
+        {transactions.map((item) => (
+          <li key={item.id}>
+            {item.description} | {item.type === "expense" ? "-" : "+"}{" "}
+            {formatCurrency(item.amount_cents)} | {item.date}
           </li>
         ))}
       </ul>
