@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import Summary from "./Summary";
+import formatCurrency from "./format";
 
 type Transaction = {
   id: number;
@@ -8,26 +10,29 @@ type Transaction = {
   date: string;
 };
 
-const brl = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
 function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [description, setDescription] = useState("");
   const [type, setType] = useState("expense");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
+  const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
 
   useEffect(() => {
     loadTransactions();
+    loadSummary();
   }, []);
 
   function loadTransactions() {
     fetch("/api/transactions")
       .then((res) => res.json())
       .then((data) => setTransactions(data));
+  }
+
+  function loadSummary() {
+    fetch("/api/summary")
+      .then((res) => res.json())
+      .then((data) => setSummary(data));
   }
 
   function handleSubmit() {
@@ -38,6 +43,7 @@ function App() {
       body: JSON.stringify({ type, amount_cents, description, date }),
     }).then(() => {
       loadTransactions();
+      loadSummary();
       setDescription("");
       setAmount("");
       setDate("");
@@ -73,10 +79,15 @@ function App() {
         {transactions.map((t) => (
           <li key={t.id}>
             {t.description} | {t.type === "expense" ? "-" : "+"}{" "}
-            {brl.format(t.amount_cents / 100)} | {t.date}
+            {formatCurrency(t.amount_cents)} | {t.date}
           </li>
         ))}
       </ul>
+      <Summary
+        income={summary.income}
+        expense={summary.expense}
+        balance={summary.balance}
+      />
     </div>
   );
 }
